@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collaborative Drawing Canvas</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <h1 class="title">Collaborative Drawing Canvas</h1>
+      <div class="user-info">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        <span id="user-count">0 online</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-section">
+      <button id="brush-btn" class="tool-btn active" data-tool="brush">Brush</button>
+      <button id="eraser-btn" class="tool-btn" data-tool="eraser">Eraser</button>
+    </div>
+
+    <div class="toolbar-section">
+      <div class="color-picker">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+        <div class="color-palette">
+          <button class="color-btn" data-color="#000000" style="background: #000000;"></button>
+          <button class="color-btn active" data-color="#3b82f6" style="background: #3b82f6;"></button>
+          <button class="color-btn" data-color="#ef4444" style="background: #ef4444;"></button>
+          <button class="color-btn" data-color="#22c55e" style="background: #22c55e;"></button>
+          <button class="color-btn" data-color="#eab308" style="background: #eab308;"></button>
+          <button class="color-btn" data-color="#a855f7" style="background: #a855f7;"></button>
+          <button class="color-btn" data-color="#ec4899" style="background: #ec4899;"></button>
+          <button class="color-btn" data-color="#f97316" style="background: #f97316;"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar-section">
+      <label class="stroke-width-label">
+        Size:
+        <input type="range" id="stroke-width" min="1" max="20" value="3" class="stroke-slider">
+        <span id="stroke-value">3</span>px
+      </label>
+    </div>
+
+    <div class="toolbar-section toolbar-actions">
+      <button id="undo-btn" class="action-btn" disabled title="Undo">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M3 7v6h6"></path>
+          <path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path>
+        </svg>
+      </button>
+      <button id="redo-btn" class="action-btn" disabled title="Redo">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 7v6h-6"></path>
+          <path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7"></path>
+        </svg>
+      </button>
+      <button id="clear-btn" class="action-btn" title="Clear Canvas">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+      <button id="download-btn" class="action-btn action-btn-primary" title="Download">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Canvas Container -->
+  <div class="canvas-container">
+    <canvas id="drawing-canvas"></canvas>
+    <div id="cursors-container"></div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <span id="connection-status" class="status-indicator"></span>
+      <span id="status-text">Connecting...</span>
+    </div>
+    <div class="status-item">
+      <span id="latency-text">Latency: -- ms</span>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
