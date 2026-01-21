@@ -1,7 +1,3 @@
-/**
- * CanvasManager - Handles all canvas drawing operations
- * Implements efficient path rendering and operation management
- */
 export class CanvasManager {
     constructor(canvas) {
       this.canvas = canvas;
@@ -10,7 +6,6 @@ export class CanvasManager {
         desynchronized: true
       });
       
-      // Drawing state
       this.operations = [];
       this.redoStack = [];
       this.currentOperation = null;
@@ -18,39 +13,25 @@ export class CanvasManager {
       this.initialize();
     }
   
-    /**
-     * Initialize canvas
-     */
     initialize() {
-      // Set canvas size to match display size
       this.resize();
       
-      // Clear canvas with white background
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
   
-    /**
-     * Resize canvas to fit container
-     */
     resize() {
       const rect = this.canvas.getBoundingClientRect();
       
-      // Store old canvas data
       const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
-      
-      // Resize canvas
+
       this.canvas.width = rect.width;
       this.canvas.height = rect.height;
-      
-      // Set white background
+
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
   
-    /**
-     * Start a new drawing operation
-     */
     startDrawing(x, y, color, width, tool) {
       this.currentOperation = {
         id: Date.now() + Math.random(),
@@ -62,9 +43,6 @@ export class CanvasManager {
       };
     }
   
-    /**
-     * Add point to current operation
-     */
     addPoint(x, y) {
       if (!this.currentOperation) return null;
       
@@ -72,9 +50,6 @@ export class CanvasManager {
       return this.currentOperation;
     }
   
-    /**
-     * End current drawing operation
-     */
     endDrawing() {
       if (!this.currentOperation || this.currentOperation.points.length === 0) {
         return null;
@@ -82,15 +57,12 @@ export class CanvasManager {
       
       const operation = this.currentOperation;
       this.operations.push(operation);
-      this.redoStack = []; // Clear redo stack
+      this.redoStack = []; 
       this.currentOperation = null;
       
       return operation;
     }
   
-    /**
-     * Draw a stroke (used for real-time drawing)
-     */
     drawStroke(points, color, width, tool) {
       if (!points || points.length === 0) return;
       
@@ -100,11 +72,9 @@ export class CanvasManager {
       this.ctx.lineWidth = width;
       
       if (tool === 'eraser') {
-        // Eraser mode - actually erase by drawing white
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.globalCompositeOperation = 'source-over';
       } else {
-        // Brush mode - normal drawing
         this.ctx.strokeStyle = color;
         this.ctx.globalCompositeOperation = 'source-over';
       }
@@ -113,11 +83,9 @@ export class CanvasManager {
       this.ctx.moveTo(points[0].x, points[0].y);
       
       if (points.length === 1) {
-        // Single point - draw a circle
         this.ctx.arc(points[0].x, points[0].y, width / 2, 0, Math.PI * 2);
         this.ctx.fill();
       } else {
-        // Multiple points - draw smooth line
         for (let i = 1; i < points.length; i++) {
           this.ctx.lineTo(points[i].x, points[i].y);
         }
@@ -126,10 +94,6 @@ export class CanvasManager {
       
       this.ctx.restore();
     }
-  
-    /**
-     * Draw a complete operation
-     */
     drawOperation(operation) {
       if (!operation || !operation.points || operation.points.length === 0) {
         return;
@@ -143,11 +107,9 @@ export class CanvasManager {
       this.ctx.lineWidth = width;
       
       if (type === 'eraser') {
-        // Eraser draws white
         this.ctx.strokeStyle = '#ffffff';
         this.ctx.globalCompositeOperation = 'source-over';
       } else {
-        // Brush draws with color
         this.ctx.strokeStyle = color;
         this.ctx.globalCompositeOperation = 'source-over';
       }
@@ -156,11 +118,9 @@ export class CanvasManager {
       this.ctx.moveTo(points[0].x, points[0].y);
       
       if (points.length === 1) {
-        // Single point
         this.ctx.arc(points[0].x, points[0].y, width / 2, 0, Math.PI * 2);
         this.ctx.fill();
       } else {
-        // Multiple points
         for (let i = 1; i < points.length; i++) {
           this.ctx.lineTo(points[i].x, points[i].y);
         }
@@ -169,22 +129,11 @@ export class CanvasManager {
       
       this.ctx.restore();
     }
-  
-    /**
-     * Redraw entire canvas from operations
-     */
     redraw() {
-      // Clear canvas with white
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-      
-      // Redraw all operations in order
       this.operations.forEach(op => this.drawOperation(op));
     }
-  
-    /**
-     * Undo last operation
-     */
     undo() {
       if (this.operations.length === 0) return null;
       
@@ -194,10 +143,7 @@ export class CanvasManager {
       
       return operation;
     }
-  
-    /**
-     * Redo last undone operation
-     */
+
     redo() {
       if (this.redoStack.length === 0) return null;
       
@@ -207,10 +153,6 @@ export class CanvasManager {
       
       return operation;
     }
-  
-    /**
-     * Clear entire canvas
-     */
     clear() {
       this.operations = [];
       this.redoStack = [];
@@ -219,18 +161,12 @@ export class CanvasManager {
       this.ctx.fillStyle = '#ffffff';
       this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
-  
-    /**
-     * Add remote operation (from another user)
-     */
+
     addRemoteOperation(operation) {
       this.operations.push(operation);
       this.drawOperation(operation);
     }
-  
-    /**
-     * Remove operation by ID (for remote undo)
-     */
+
     removeOperation(operationId) {
       const index = this.operations.findIndex(op => op.id === operationId);
       
@@ -242,10 +178,7 @@ export class CanvasManager {
       
       return false;
     }
-  
-    /**
-     * Get canvas state
-     */
+
     getState() {
       return {
         operations: [...this.operations],
@@ -253,25 +186,13 @@ export class CanvasManager {
         canRedo: this.redoStack.length > 0
       };
     }
-  
-    /**
-     * Load operations (for initial sync)
-     */
     loadOperations(operations) {
       this.operations = operations;
       this.redraw();
     }
-  
-    /**
-     * Export canvas as image
-     */
     exportImage() {
       return this.canvas.toDataURL('image/png');
     }
-  
-    /**
-     * Get canvas coordinates from mouse event
-     */
     getCanvasCoordinates(event) {
       const rect = this.canvas.getBoundingClientRect();
       
