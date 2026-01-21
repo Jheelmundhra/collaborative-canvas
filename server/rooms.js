@@ -1,10 +1,5 @@
-/**
- * RoomManager - Manages multiple drawing rooms and user sessions
- * Handles user tracking, room creation, and cleanup
- */
 class RoomManager {
     constructor() {
-      // Map of roomId -> Set of user objects
       this.rooms = new Map();
     }
   
@@ -36,8 +31,6 @@ class RoomManager {
       
       const room = this.rooms.get(roomId);
       const removed = room.delete(userId);
-      
-      // Clean up empty rooms
       if (room.size === 0) {
         this.rooms.delete(roomId);
         console.log(`Room ${roomId} deleted (empty)`);
