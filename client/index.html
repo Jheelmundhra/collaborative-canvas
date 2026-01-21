@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Header -->
   <header class="header">
     <div class="header-content">
       <h1 class="title">Collaborative Drawing Canvas</h1>
@@ -22,8 +21,6 @@
       </div>
     </div>
   </header>
-
-  <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-section">
       <button id="brush-btn" class="tool-btn active" data-tool="brush">Brush</button>
@@ -84,14 +81,10 @@
       </button>
     </div>
   </div>
-
-  <!-- Canvas Container -->
   <div class="canvas-container">
     <canvas id="drawing-canvas"></canvas>
     <div id="cursors-container"></div>
   </div>
-
-  <!-- Status Bar -->
   <div class="status-bar">
     <div class="status-item">
       <span id="connection-status" class="status-indicator"></span>
@@ -101,8 +94,6 @@
       <span id="latency-text">Latency: -- ms</span>
     </div>
   </div>
-
-  <!-- Scripts -->
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="main.js"></script>
 </body>
