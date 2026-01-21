@@ -1,66 +1,37 @@
-/**
- * Main Application Entry Point
- * Coordinates canvas, WebSocket, and UI interactions
- */
 import { CanvasManager } from './canvas.js';
 import { WebSocketClient } from './websocket.js';
 
 class CollaborativeCanvas {
   constructor() {
-    // Core components
     this.canvas = null;
     this.canvasManager = null;
     this.wsClient = null;
-    
-    // Drawing state
     this.isDrawing = false;
     this.currentTool = 'brush';
     this.currentColor = '#3b82f6';
     this.strokeWidth = 3;
-    
-    // Users and cursors
     this.users = [];
     this.remoteCursors = new Map();
-    
-    // Performance optimization
     this.pendingPoints = [];
     this.animationFrame = null;
     this.lastCursorUpdate = 0;
-    this.cursorThrottle = 50; // ms
-    
-    // Batch sending
+    this.cursorThrottle = 50;
     this.sendBatchTimeout = null;
-    this.batchInterval = 16; // ~60fps
-    
+    this.batchInterval = 16; 
     this.initialize();
   }
-
-  /**
-   * Initialize the application
-   */
   initialize() {
-    // Get canvas element
     this.canvas = document.getElementById('drawing-canvas');
     if (!this.canvas) {
       console.error('Canvas element not found');
       return;
     }
-
-    // Initialize canvas manager
     this.canvasManager = new CanvasManager(this.canvas);
-    
-    // Setup event listeners
     this.setupCanvasEvents();
     this.setupUIEvents();
     this.setupWindowEvents();
-    
-    // Initialize WebSocket
     this.initializeWebSocket();
   }
-
-  /**
-   * Initialize WebSocket connection
-   */
   initializeWebSocket() {
     this.wsClient = new WebSocketClient(
       this.handleWebSocketMessage.bind(this),
@@ -69,10 +40,6 @@ class CollaborativeCanvas {
     
     this.wsClient.connect();
   }
-
-  /**
-   * Handle WebSocket messages
-   */
   handleWebSocketMessage(message) {
     const { type, data } = message;
     
@@ -114,10 +81,6 @@ class CollaborativeCanvas {
         break;
     }
   }
-
-  /**
-   * Handle initial state
-   */
   handleInit(data) {
     console.log('Initialized with data:', data);
     this.users = data.users || [];
@@ -129,33 +92,19 @@ class CollaborativeCanvas {
     
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Handle user joined
-   */
   handleUserJoined(data) {
     console.log('User joined:', data);
     this.users.push(data);
     this.updateUserCount();
   }
-
-  /**
-   * Handle user left
-   */
   handleUserLeft(data) {
     console.log('User left:', data);
     this.users = this.users.filter(u => u.id !== data.userId);
     this.updateUserCount();
     this.removeRemoteCursor(data.userId);
   }
-
-  /**
-   * Handle remote drawing (real-time)
-   */
   handleRemoteDraw(data) {
     if (data.userId === this.wsClient.getUserId()) return;
-    
-    // Draw the stroke in real-time
     this.canvasManager.drawStroke(
       data.points,
       data.color,
@@ -163,53 +112,29 @@ class CollaborativeCanvas {
       data.tool
     );
   }
-
-  /**
-   * Handle remote operation (completed stroke)
-   */
   handleRemoteOperation(data) {
     if (data.userId === this.wsClient.getUserId()) return;
     
     this.canvasManager.addRemoteOperation(data.operation);
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Handle remote undo
-   */
   handleRemoteUndo(data) {
     this.canvasManager.removeOperation(data.operationId);
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Handle remote redo
-   */
   handleRemoteRedo(data) {
     this.canvasManager.addRemoteOperation(data.operation);
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Handle remote clear
-   */
   handleRemoteClear(data) {
     this.canvasManager.clear();
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Handle remote cursor
-   */
   handleRemoteCursor(data) {
     if (data.userId === this.wsClient.getUserId()) return;
     
     this.updateRemoteCursor(data.userId, data.x, data.y, data.color);
   }
-
-  /**
-   * Handle connection state change
-   */
   handleConnectionChange(connected, latency) {
     const statusIndicator = document.getElementById('connection-status');
     const statusText = document.getElementById('status-text');
@@ -225,59 +150,37 @@ class CollaborativeCanvas {
       latencyText.textContent = 'Latency: -- ms';
     }
   }
-
-  /**
-   * Setup canvas event listeners
-   */
   setupCanvasEvents() {
-    // Mouse events
     this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
     this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
     this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
     this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this));
-    
-    // Touch events
     this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
     this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
     this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
   }
-
-  /**
-   * Setup UI event listeners
-   */
   setupUIEvents() {
-    // Tool buttons
     document.querySelectorAll('.tool-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.setTool(btn.dataset.tool);
       });
     });
-    
-    // Color buttons
     document.querySelectorAll('.color-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         this.setColor(btn.dataset.color);
       });
     });
-    
-    // Stroke width
     const strokeSlider = document.getElementById('stroke-width');
     const strokeValue = document.getElementById('stroke-value');
     strokeSlider.addEventListener('input', (e) => {
       this.strokeWidth = parseInt(e.target.value);
       strokeValue.textContent = this.strokeWidth;
     });
-    
-    // Action buttons
     document.getElementById('undo-btn').addEventListener('click', () => this.undo());
     document.getElementById('redo-btn').addEventListener('click', () => this.redo());
     document.getElementById('clear-btn').addEventListener('click', () => this.clear());
     document.getElementById('download-btn').addEventListener('click', () => this.download());
   }
-
-  /**
-   * Setup window event listeners
-   */
   setupWindowEvents() {
     window.addEventListener('resize', () => {
       this.canvasManager.resize();
@@ -288,18 +191,10 @@ class CollaborativeCanvas {
       this.wsClient.disconnect();
     });
   }
-
-  /**
-   * Handle mouse down
-   */
   handleMouseDown(e) {
     const coords = this.canvasManager.getCanvasCoordinates(e);
     this.startDrawing(coords.x, coords.y);
   }
-
-  /**
-   * Handle mouse move
-   */
   handleMouseMove(e) {
     const coords = this.canvasManager.getCanvasCoordinates(e);
     
@@ -309,64 +204,36 @@ class CollaborativeCanvas {
     
     this.sendCursor(coords.x, coords.y);
   }
-
-  /**
-   * Handle mouse up
-   */
   handleMouseUp(e) {
     this.stopDrawing();
   }
-
-  /**
-   * Handle touch start
-   */
   handleTouchStart(e) {
     e.preventDefault();
     const touch = e.touches[0];
     const coords = this.canvasManager.getCanvasCoordinates(touch);
     this.startDrawing(coords.x, coords.y);
   }
-
-  /**
-   * Handle touch move
-   */
   handleTouchMove(e) {
     e.preventDefault();
     const touch = e.touches[0];
     const coords = this.canvasManager.getCanvasCoordinates(touch);
     this.draw(coords.x, coords.y);
   }
-
-  /**
-   * Handle touch end
-   */
   handleTouchEnd(e) {
     e.preventDefault();
     this.stopDrawing();
   }
-
-  /**
-   * Start drawing
-   */
   startDrawing(x, y) {
     this.isDrawing = true;
     this.canvasManager.startDrawing(x, y, this.currentColor, this.strokeWidth, this.currentTool);
     this.pendingPoints = [{ x, y }];
-    
-    // Draw the starting point immediately
     this.canvasManager.drawStroke([{ x, y }], this.currentColor, this.strokeWidth, this.currentTool);
   }
-
-  /**
-   * Draw
-   */
   draw(x, y) {
     if (!this.isDrawing) return;
     
     this.canvasManager.addPoint(x, y);
     this.pendingPoints.push({ x, y });
-    
-    // Draw locally immediately for smooth experience
     if (this.pendingPoints.length >= 2) {
       const lastTwo = this.pendingPoints.slice(-2);
       this.canvasManager.drawStroke(
@@ -376,14 +243,8 @@ class CollaborativeCanvas {
         this.currentTool
       );
     }
-    
-    // Batch and send to server
     this.scheduleBatchSend();
   }
-
-  /**
-   * Schedule batched send to server
-   */
   scheduleBatchSend() {
     if (this.sendBatchTimeout) return;
     
@@ -395,8 +256,6 @@ class CollaborativeCanvas {
           width: this.strokeWidth,
           tool: this.currentTool
         });
-        
-        // Keep only the last point for continuity
         if (this.pendingPoints.length > 1) {
           this.pendingPoints = [this.pendingPoints[this.pendingPoints.length - 1]];
         }
@@ -405,20 +264,12 @@ class CollaborativeCanvas {
       this.sendBatchTimeout = null;
     }, this.batchInterval);
   }
-
-  /**
-   * Stop drawing
-   */
   stopDrawing() {
     if (!this.isDrawing) return;
-    
-    // Clear any pending batch send
     if (this.sendBatchTimeout) {
       clearTimeout(this.sendBatchTimeout);
       this.sendBatchTimeout = null;
     }
-    
-    // Send final batch if needed
     if (this.pendingPoints.length > 0 && this.wsClient.isConnected()) {
       this.wsClient.send('draw', {
         points: [...this.pendingPoints],
@@ -438,10 +289,6 @@ class CollaborativeCanvas {
     this.pendingPoints = [];
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Send cursor position (throttled)
-   */
   sendCursor(x, y) {
     const now = Date.now();
     if (now - this.lastCursorUpdate > this.cursorThrottle) {
@@ -451,10 +298,6 @@ class CollaborativeCanvas {
       this.lastCursorUpdate = now;
     }
   }
-
-  /**
-   * Set current tool
-   */
   setTool(tool) {
     this.currentTool = tool;
     
@@ -464,10 +307,6 @@ class CollaborativeCanvas {
     
     console.log('Tool changed to:', tool);
   }
-
-  /**
-   * Set current color
-   */
   setColor(color) {
     this.currentColor = color;
     
@@ -477,10 +316,6 @@ class CollaborativeCanvas {
     
     console.log('Color changed to:', color);
   }
-
-  /**
-   * Undo
-   */
   undo() {
     const operation = this.canvasManager.undo();
     
@@ -490,10 +325,6 @@ class CollaborativeCanvas {
     
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Redo
-   */
   redo() {
     const operation = this.canvasManager.redo();
     
@@ -503,10 +334,6 @@ class CollaborativeCanvas {
     
     this.updateUndoRedoButtons();
   }
-
-  /**
-   * Clear canvas
-   */
   clear() {
     if (confirm('Clear the entire canvas for all users? This action cannot be undone.')) {
       this.canvasManager.clear();
@@ -518,10 +345,6 @@ class CollaborativeCanvas {
       this.updateUndoRedoButtons();
     }
   }
-
-  /**
-   * Download canvas
-   */
   download() {
     const dataUrl = this.canvasManager.exportImage();
     const link = document.createElement('a');
@@ -529,28 +352,16 @@ class CollaborativeCanvas {
     link.href = dataUrl;
     link.click();
   }
-
-  /**
-   * Update undo/redo button states
-   */
   updateUndoRedoButtons() {
     const state = this.canvasManager.getState();
     
     document.getElementById('undo-btn').disabled = !state.canUndo;
     document.getElementById('redo-btn').disabled = !state.canRedo;
   }
-
-  /**
-   * Update user count display
-   */
   updateUserCount() {
     document.getElementById('user-count').textContent = 
       `${this.users.length} online`;
   }
-
-  /**
-   * Update remote cursor position
-   */
   updateRemoteCursor(userId, x, y, color) {
     let cursor = this.remoteCursors.get(userId);
     
@@ -564,18 +375,12 @@ class CollaborativeCanvas {
     
     cursor.style.left = x + 'px';
     cursor.style.top = y + 'px';
-    
-    // Auto-hide after inactivity
     clearTimeout(cursor.hideTimeout);
     cursor.style.opacity = '1';
     cursor.hideTimeout = setTimeout(() => {
       cursor.style.opacity = '0';
     }, 2000);
   }
-
-  /**
-   * Remove remote cursor
-   */
   removeRemoteCursor(userId) {
     const cursor = this.remoteCursors.get(userId);
     if (cursor) {
@@ -584,8 +389,6 @@ class CollaborativeCanvas {
     }
   }
 }
-
-// Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   new CollaborativeCanvas();
 });
