@@ -13,7 +13,6 @@
     overflow: hidden;
   }
   
-  /* Header */
   .header {
     background: white;
     border-bottom: 1px solid #e5e7eb;
@@ -45,8 +44,7 @@
     height: 1.25rem;
     stroke-width: 2;
   }
-  
-  /* Toolbar */
+
   .toolbar {
     background: white;
     border-bottom: 1px solid #e5e7eb;
@@ -164,7 +162,6 @@
     background: #2563eb;
   }
   
-  /* Canvas Container */
   .canvas-container {
     flex: 1;
     padding: 1rem;
@@ -215,8 +212,6 @@
     border-radius: 0.25rem;
     white-space: nowrap;
   }
-  
-  /* Status Bar */
   .status-bar {
     background: white;
     border-top: 1px solid #e5e7eb;
