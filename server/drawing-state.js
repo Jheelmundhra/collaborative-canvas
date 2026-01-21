@@ -1,18 +1,8 @@
-/**
- * DrawingStateManager - Manages canvas state and operation history
- * Implements Operational Transformation for conflict resolution
- * Handles undo/redo across multiple users
- */
 class DrawingStateManager {
     constructor() {
-      // Map of roomId -> operation history
       this.roomStates = new Map();
-      
-      // Maximum operations to keep in memory per room
       this.maxOperations = 10000;
-      
-      // Cleanup interval
-      this.cleanupInterval = 60000; // 1 minute
+      this.cleanupInterval = 60000; 
       this.startCleanup();
     }
   
@@ -24,7 +14,7 @@ class DrawingStateManager {
       if (!this.roomStates.has(roomId)) {
         this.roomStates.set(roomId, {
           operations: [],
-          operationMap: new Map(), // Quick lookup by operation ID
+          operationMap: new Map(), 
           createdAt: Date.now(),
           lastActivity: Date.now()
         });
@@ -40,12 +30,10 @@ class DrawingStateManager {
       this.initRoom(roomId);
       const state = this.roomStates.get(roomId);
       
-      // Add to both array and map for efficient access
       state.operations.push(operation);
       state.operationMap.set(operation.id, operation);
       state.lastActivity = Date.now();
       
-      // Enforce maximum operations limit
       if (state.operations.length > this.maxOperations) {
         const removed = state.operations.shift();
         state.operationMap.delete(removed.id);
@@ -71,8 +59,6 @@ class DrawingStateManager {
       if (!operation) {
         return null;
       }
-      
-      // Remove from both structures
       const index = state.operations.findIndex(op => op.id === operationId);
       if (index !== -1) {
         state.operations.splice(index, 1);
@@ -165,24 +151,15 @@ class DrawingStateManager {
     estimateMemorySize(operations) {
       let size = 0;
       for (const op of operations) {
-        // Rough estimate: each point is ~16 bytes, plus overhead
         size += (op.points?.length || 0) * 16 + 100;
       }
       return size;
     }
-  
-    /**
-     * Start cleanup process for inactive rooms
-     */
     startCleanup() {
       this.cleanupTimer = setInterval(() => {
         this.cleanupInactiveRooms();
       }, this.cleanupInterval);
     }
-  
-    /**
-     * Clean up rooms that have been inactive for too long
-     */
     cleanupInactiveRooms() {
       const now = Date.now();
       const inactiveThreshold = 3600000; // 1 hour
@@ -194,10 +171,6 @@ class DrawingStateManager {
         }
       }
     }
-  
-    /**
-     * Stop cleanup process
-     */
     stopCleanup() {
       if (this.cleanupTimer) {
         clearInterval(this.cleanupTimer);
